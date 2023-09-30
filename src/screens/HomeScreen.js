@@ -1,3 +1,6 @@
+//TODO use react-native-player-recorder to capture the audio
+//TODO use whisper ai SAAS api to recognize.
+
 import {
   Text,
   View,
@@ -6,7 +9,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
@@ -14,11 +17,45 @@ import {
 import {dummyMessages} from '../constants';
 import {useState} from 'react';
 import Features from '../components/Features';
+import Voice from '@react-native-community/voice';
 
 const HomeScreen = () => {
   const [messages, setMessages] = useState(dummyMessages);
   const [recording, setRecording] = useState(false);
   const [speaking, setSpeaking] = useState(true);
+
+  const speechStartHandler = e => {
+    console.log('speech start handler', e);
+  };
+  const speechEndHandler = e => {
+    setRecording(false);
+    console.log('speech end handler', e);
+  };
+
+  const speechResultsHandler = e => {
+    console.log('voice event', e);
+  };
+  const speechErrorHandler = e => {
+    console.log('speech error handler', e.error); // Log the error object
+  };
+
+  const startRecording = async () => {
+    setRecording(true);
+    try {
+      await Voice.start('en-GB'); //en-US
+    } catch (error) {
+      console.log('error', error);
+    }
+  };
+  const stopRecording = async () => {
+    try {
+      await Voice.stop();
+      setRecording(false);
+      //fetch results
+    } catch (error) {
+      console.log('error', error);
+    }
+  };
 
   function clear() {
     setMessages([]);
@@ -27,6 +64,19 @@ const HomeScreen = () => {
   function stopSpeaking() {
     setSpeaking(false);
   }
+
+  useEffect(() => {
+    //voice handler events
+    Voice.onSpeechStart = speechStartHandler;
+    Voice.onSpeechEnd = speechEndHandler;
+    Voice.onSpeechResults = speechResultsHandler;
+    Voice.onSpeechError = speechErrorHandler;
+
+    return () => {
+      //destroy the instance
+      Voice.destroy().then(Voice.removeAllListeners);
+    };
+  }, []);
 
   return (
     <View className="flex-1 bg-white">
@@ -109,7 +159,8 @@ const HomeScreen = () => {
         {/*  recording, clear and stop buttons*/}
         <View className="flex justify-center items-center">
           {recording ? (
-            <TouchableOpacity>
+            <TouchableOpacity onPress={stopRecording}>
+              {/*recording stop*/}
               <Image
                 className="rounded-full"
                 source={require('../../assets/images/voiceLoading.gif')}
@@ -117,7 +168,9 @@ const HomeScreen = () => {
               />
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity>
+            <TouchableOpacity onPress={startRecording}>
+              {/*recording start*/}
+
               <Image
                 className="rounded-full"
                 source={require('../../assets/images/recordingIcon.png')}
