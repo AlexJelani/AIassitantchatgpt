@@ -23,6 +23,7 @@ const HomeScreen = () => {
   const [messages, setMessages] = useState(dummyMessages);
   const [recording, setRecording] = useState(false);
   const [speaking, setSpeaking] = useState(true);
+  const [result, setResult] = useState("");
 
   const speechStartHandler = e => {
     console.log('speech start handler', e);
@@ -34,6 +35,8 @@ const HomeScreen = () => {
 
   const speechResultsHandler = e => {
     console.log('voice event', e);
+    const text = e.value[0];
+    setResult(text);
   };
   const speechErrorHandler = e => {
     console.log('speech error handler', e.error); // Log the error object
@@ -77,7 +80,7 @@ const HomeScreen = () => {
       Voice.destroy().then(Voice.removeAllListeners);
     };
   }, []);
-
+  console.log('result', result);
   return (
     <View className="flex-1 bg-white">
       <SafeAreaView className="flex-1 flex mx-5">
